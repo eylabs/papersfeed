@@ -52,15 +52,43 @@ def createXMLFromFile(fileName, directoryName):
 		outfile.write("<rss version = '2.0'>\n")
 		outfile.write("<channel>\n")
 		outfile.write("<title>EY Labs Papers by Lectin</title>\n")
-		outfile.write("<link>./rssfeed.xml</link> \n")
-		outfile.write("<description>New Papers by Lectin</description>\n")
+		outfile.write("<link>%s</link> \n"%(XMLFileName))
+		outfile.write("<description>New Papers for Lectin " + fileName[:-3] + "</description>\n")
 		for row in csvdata:
 			outfile.write("<item>\n")
 			outfile.write("<title>" + row[1] +"</title>\n")
 			outfile.write("<link>" + row[3] + "</link>\n")
 			outfile.write("<description> Citations: " + row[4] + "</description>\n")
-			outfile.write("<author>" + row[0] + "</author>\n")
+			outfile.write("<authors>" + row[0] + "</authors>\n")
 			outfile.write("<pubDate>" + row[2] + "</pubDate>\n")
+			outfile.write("</item>\n")
+			outfile.write("\n")
+		outfile.write("</channel>\n")
+		outfile.write("</rss>\n")
+		outfile.close()
+	print XMLFileName
+	return XMLFileName
+
+def createRSSXMLFromFile(fileName, directoryName):
+	csvdata = []
+	XMLFileName = "rss_" + directoryName + "/" + fileName[:-3] + "xml"
+	with open("clean_" + directoryName + "/" + fileName, "rb") as infile:
+		reader = csv.reader(infile, delimiter = ",")
+		next(reader)
+		for row in reader:
+			csvdata.append(row)
+	with open(XMLFileName, "wb") as outfile:
+		outfile.write("<?xml version='1.0' encoding='UTF-8' ?>\n")
+		outfile.write("<rss version = '2.0'>\n")
+		outfile.write("<channel>\n")
+		outfile.write("<title>EY Labs Papers by Lectin</title>\n")
+		outfile.write("<link>%s</link> \n"%(XMLFileName))
+		outfile.write("<description>New Papers for Lectin " + fileName[:-3] + "</description>\n")
+		for row in csvdata:
+			outfile.write("<item>\n")
+			outfile.write("<title>" + row[1] +"</title>\n")
+			outfile.write("<link>" + row[3] + "</link>\n")
+			outfile.write("<description> Citations: %s Year: %s Authors: %s </description>\n"%(row[4], row[2], row[0]))
 			outfile.write("</item>\n")
 			outfile.write("\n")
 		outfile.write("</channel>\n")
@@ -83,6 +111,7 @@ def main():
 			removeFieldsFromFile(fileName, directoryName)
 			print fileName
 	print "done with cleaning"
+
 	try:
 		os.makedirs("./xml_" + directoryName)
 	except OSError:
@@ -91,5 +120,14 @@ def main():
 		for fileName in files:
 			createXMLFromFile(fileName, directoryName)
 	print "done with creating XML Files"
+
+	try:
+		os.makedirs("./rss_" + directoryName)
+	except OSError:
+		pass
+	for subdir, dirs, files in os.walk(cleandir):
+		for fileName in files:
+			createRSSXMLFromFile(fileName, directoryName)
+	print "done with creating RSS XMLs"
 
 main()
